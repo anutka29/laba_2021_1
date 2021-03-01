@@ -1,0 +1,44 @@
+version: '3.3'
+services:
+  web:
+    depends_on:
+      - db
+    image: tomcat
+    container_name: "${PROJECT_NAME}_tomcat"
+    volumes:
+      - ./.docker/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+#      - ./.docker/sample.war:/usr/local/tomcat/webapps/sample.war
+      - ./target/java8lab.war:/usr/local/tomcat/webapps/java8lab.war
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: testdb1
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: root
+#      JPDA_ADDRESS: 5005
+#      JPDA_TRANSPORT: dt_socket
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME}_web.rule=Host(`${PROJECT_BASE_URL}`)"
+      - "traefik.port=80"
+#    ports:
+#      - '5005:5005'
+  traefik:
+    image: traefik:v2.0
+    container_name: "${PROJECT_NAME}_traefik"
+    command: --api.insecure=true --providers.docker
+    ports:
+      - '80:80'
+      - '8080:8080' # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+#  db:
+#    image: mariadb
+#    container_name: "${PROJECT_NAME}_mariadb"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: password
+#      MYSQL_DATABASE: laba_db
+#      MYSQL_USER: laba_user
+#      MYSQL_PASSWORD: user_password
+#    ports:
+#      - 3306:3306
